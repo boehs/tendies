@@ -1,0 +1,12 @@
+[package]
+name = "tendies"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+regex = "1.11.0"
+serde = { version = "1.0.210", features = ["derive"] }
+serde_json = "1.0.128"
+zstd = "0.13.2"
