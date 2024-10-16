@@ -42,13 +42,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .iter()
         .map(|(_, s)| textplots::Shape::Lines(s))
         .collect::<Vec<_>>();
-    let mut chart = Chart::new(200, 50, 0.0, max_x);
-    let mut chart_ref = &mut chart;
-    for shape in &shapes {
-        chart_ref = chart_ref.lineplot(shape);
-    }
 
-    chart_ref
+    let mut chart = Chart::new(200, 50, 0.0, max_x);
+
+    shapes
+        .iter()
+        .fold(&mut chart, |chart, shape| chart.lineplot(shape))
         .x_axis_style(textplots::LineStyle::Solid)
         .y_axis_style(textplots::LineStyle::Solid)
         .display();
