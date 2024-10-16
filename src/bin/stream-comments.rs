@@ -51,17 +51,15 @@ fn main() {
         return;
     };
     let reader = BufReader::new(file);
-
     let decoder = zstd::stream::Decoder::new(reader).unwrap();
-
     let stream = serde_json::Deserializer::from_reader(decoder).into_iter::<Comment>();
 
-    for comment in stream {
+    for comment in stream.take(1000000) {
         let comment = comment.unwrap();
         if comment.is_deleted() {
             continue;
         }
-        println!("{:?}", comment);
-        println!("{:?}", comment.get_tickers());
+        //println!("{:?}", comment);
+        //println!("{:?}", comment.get_tickers());
     }
 }
