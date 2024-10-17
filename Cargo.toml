@@ -2,6 +2,7 @@
 name = "tendies"
 version = "0.1.0"
 edition = "2021"
+default-run = "tendies"
 
 [[bin]]
 name = "tendies"
@@ -16,6 +17,7 @@ path = "src/lib/mod.rs"
 [dependencies]
 chrono = "0.4.38"
 clap = { version = "4.5.20", features = ["derive"] }
+indicatif = "0.17.8"
 rand = "0.8.5"
 regex = "1.11.0"
 rgb = "0.8.50"

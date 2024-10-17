@@ -1,9 +1,9 @@
-use clap::Parser;
+use clap::Args;
 use tendies::portfolio;
 use textplots::{AxisBuilder, Chart, Plot};
 
-#[derive(Parser)]
-struct Args {
+#[derive(Args)]
+pub struct BacktestArgs {
     #[arg(short, long)]
     tickers: Vec<String>,
     #[arg(long, default_value_t = 10000.0)]
@@ -14,14 +14,15 @@ struct Args {
     range: String,
 }
 
-#[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let args = Args::parse();
+pub async fn main(args: BacktestArgs) -> Result<(), Box<dyn std::error::Error>> {
     let provider = yahoo_finance_api::YahooConnector::new().unwrap();
 
     let mut all_quotes = vec![];
     let mut portfolios = vec![];
     let mut price_histories = vec![];
+
+    let pb =
+        indicatif::ProgressBar::new(args.tickers.len() as u64).with_prefix("Downloading quotes");
 
     for ticker in args.tickers {
         let response = provider
@@ -34,6 +35,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 continue;
             }
         };
+        pb.inc(1);
         let mut portfolio = portfolio::Portfolio::new(&ticker);
         portfolio.add_position_by_value(
             &ticker,
@@ -51,6 +53,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         ));
         all_quotes.extend(quotes);
     }
+
+    pb.finish_and_clear();
 
     // find the largest number of data points
     let max_y = price_histories
