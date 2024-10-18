@@ -1,4 +1,29 @@
 use chrono::{DateTime, Utc};
+use rand::Rng;
+use rgb::RGB8;
+use serde::Deserialize;
+use serde_qs;
+
+#[derive(Deserialize, Default)]
+struct Options {
+    #[serde(default = "l_default")]
+    pub l: f64,
+}
+
+fn l_default() -> f64 {
+    1.0
+}
+
+fn parse_ticker(ticker: &str) -> (String, Options) {
+    // get the ticker and options, split by ?. If there are no options, use the default
+    let mut parts = ticker.splitn(2, '?');
+    let ticker = parts.next().unwrap();
+    let options = parts
+        .next()
+        .map(|options| serde_qs::from_str(options).unwrap())
+        .unwrap_or(serde_qs::from_str("").unwrap());
+    (ticker.to_string(), options)
+}
 
 pub struct Quote {
     pub timestamp: DateTime<Utc>,
@@ -14,6 +39,7 @@ pub struct Quote {
 pub struct Portfolio {
     pub name: String,
     pub positions: Vec<Position>,
+    pub color: RGB8,
 }
 
 #[derive(Clone)]
@@ -27,9 +53,12 @@ pub struct Position {
 
 impl Portfolio {
     pub fn new(name: &str) -> Self {
+        let mut rng = rand::thread_rng();
+
         Portfolio {
             name: name.to_string(),
             positions: Vec::new(),
+            color: RGB8::new(rng.gen(), rng.gen(), rng.gen()),
         }
     }
 

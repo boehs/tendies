@@ -1,6 +1,6 @@
 use clap::Args;
 use tendies::portfolio;
-use textplots::{AxisBuilder, Chart, Plot};
+use textplots::{AxisBuilder, Chart, ColorPlot};
 
 #[derive(Args)]
 pub struct BacktestArgs {
@@ -18,7 +18,6 @@ pub async fn main(args: BacktestArgs) -> Result<(), Box<dyn std::error::Error>> 
     let provider = yahoo_finance_api::YahooConnector::new().unwrap();
 
     let mut all_quotes = vec![];
-    let mut portfolios = vec![];
     let mut price_histories = vec![];
 
     let pb =
@@ -43,10 +42,9 @@ pub async fn main(args: BacktestArgs) -> Result<(), Box<dyn std::error::Error>> 
             quotes.first().unwrap().close,
             chrono::Utc::now(),
         );
-        portfolios.push(portfolio.clone());
         price_histories.push((
-            ticker.clone(),
-            portfolio.clone().calculate_portfolio_history(&[(
+            portfolio.clone(),
+            portfolio.calculate_portfolio_history(&[(
                 ticker,
                 quotes.iter().map(|quote| quote.close).collect(),
             )]),
@@ -64,27 +62,39 @@ pub async fn main(args: BacktestArgs) -> Result<(), Box<dyn std::error::Error>> 
         .unwrap();
 
     let (x, y) = termion::terminal_size().unwrap();
-    let mut chart = Chart::new((2 * x - 23).into(), (2 * y - 3).into(), 0.0, max_y as f32);
+    let mut chart = Chart::new((2 * x - 23).into(), (2 * y).into(), 0.0, max_y as f32);
 
     let t = price_histories
         .iter()
-        .map(|(_, history)| {
-            history
-                .iter()
-                .enumerate()
-                .map(|(j, value)| (j as f32, *value as f32))
-                .collect::<Vec<_>>()
+        .map(|(port, history)| {
+            (
+                port,
+                history
+                    .iter()
+                    .enumerate()
+                    .map(|(j, value)| (j as f32, *value as f32))
+                    .collect::<Vec<_>>(),
+            )
         })
         .collect::<Vec<_>>();
 
     t.iter()
-        .map(|series| textplots::Shape::Lines(series))
+        .map(|(port, series)| (port.color, textplots::Shape::Lines(series)))
         .collect::<Vec<_>>()
         .iter()
-        .fold(&mut chart, |chart, series| chart.lineplot(series))
+        .fold(&mut chart, |chart, (c, p)| chart.linecolorplot(p, *c))
         .x_axis_style(textplots::LineStyle::Solid)
         .y_axis_style(textplots::LineStyle::Solid)
         .display();
+
+    // print a key for the colors, by shading █ to represent the color
+    for (port, _) in t.iter() {
+        print!(
+            "\x1B[38;2;{};{};{}m█\x1b[0m {} ",
+            port.color.r, port.color.g, port.color.b, port.name
+        );
+    }
+    println!();
 
     Ok(())
 }
