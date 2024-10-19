@@ -1,5 +1,5 @@
 use clap::Args;
-use tendies::portfolio;
+use tendies::{portfolio, position::PositionVec};
 use textplots::{AxisBuilder, Chart, ColorPlot};
 
 #[derive(Args)]
@@ -35,7 +35,7 @@ pub async fn main(args: BacktestArgs) -> Result<(), Box<dyn std::error::Error>> 
             }
         };
         pb.inc(1);
-        let mut portfolio = portfolio::Portfolio::new(&ticker);
+        let mut portfolio = portfolio::Portfolio::new(&ticker, args.starting_balance);
         portfolio.add_position_by_value(
             &ticker,
             args.starting_balance,
