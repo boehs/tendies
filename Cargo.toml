@@ -18,7 +18,7 @@ path = "src/lib/mod.rs"
 chrono = "0.4.38"
 clap = { version = "4.5.20", features = ["derive"] }
 indicatif = "0.17.8"
-rand = "0.8.5"
+rand = "0.8.6"
 regex = "1.11.0"
 rgb = "0.8.50"
 rhai = "1.19.0"
